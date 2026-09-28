@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy Birthday 🌙</title>
+<meta name="theme-color" content="#070b1f">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     ✏️  EDIT YOUR NOTE HERE (in the <script> below, look for CONFIG)
+     ============================================================ */
+  :root{
+    --sky1:#070b1f; --sky2:#141c4a; --sky3:#2a2466;
+    --paper:#fdf8ee; --ink:#2b2350; --gold:#ffd98a; --pink:#ffb3c7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(ellipse at 50% 120%, var(--sky3) 0%, var(--sky2) 45%, var(--sky1) 100%);
+    background-color:var(--sky1);
+    color:#fff; font-family:'Quicksand',system-ui,sans-serif;
+    overflow:hidden; -webkit-tap-highlight-color:transparent;
+  }
+  canvas#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+  .moon{position:fixed;top:7vh;right:12vw;width:70px;height:70px;border-radius:50%;
+    box-shadow:-14px 8px 0 0 var(--gold);filter:drop-shadow(0 0 18px rgba(255,217,138,.55));z-index:1;
+    animation:bob 6s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(8px)}}
+
+  .stage{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:24px 16px;text-align:center}
+
+  /* ---------- Intro / envelope ---------- */
+  #intro{transition:opacity .8s, transform .8s}
+  #intro.hide{opacity:0;transform:scale(.9);pointer-events:none}
+  .hello{font-family:'Caveat',cursive;font-size:clamp(28px,8vw,42px);color:var(--gold);margin-bottom:22px;
+    text-shadow:0 0 12px rgba(255,217,138,.5)}
+  .envelope{position:relative;width:min(78vw,300px);aspect-ratio:3/2;margin:0 auto;cursor:pointer;
+    animation:float 3.5s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-10px) rotate(-1deg)}}
+  .envelope .body{position:absolute;inset:0;background:#e9e1f7;border-radius:10px;
+    box-shadow:0 18px 40px rgba(0,0,0,.45)}
+  .envelope .flap{position:absolute;left:0;right:0;top:0;height:60%;
+    background:#d6ccef;clip-path:polygon(0 0,100% 0,50% 100%);border-radius:10px 10px 0 0}
+  .envelope .pocket{position:absolute;inset:0;background:#cfc3ec;
+    clip-path:polygon(0 100%,0 30%,50% 70%,100% 30%,100% 100%);border-radius:0 0 10px 10px}
+  .envelope .seal{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:46px;height:46px;
+    border-radius:50%;background:#c2476b;display:grid;place-items:center;font-size:22px;
+    box-shadow:0 3px 8px rgba(0,0,0,.3)}
+  .tap{margin-top:26px;font-size:15px;letter-spacing:.08em;opacity:.8;animation:pulse 1.8s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  /* ---------- Letter ---------- */
+  #letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px 16px;
+    opacity:0;pointer-events:none;transition:opacity 1s}
+  #letter.show{opacity:1;pointer-events:auto}
+  .paper{width:min(100%,440px);max-height:86vh;overflow-y:auto;background:var(--paper);color:var(--ink);
+    border-radius:14px;padding:30px 26px 26px;text-align:left;position:relative;
+    box-shadow:0 0 0 6px rgba(255,255,255,.06),0 24px 60px rgba(0,0,0,.55);
+    transform:translateY(40px) scale(.96);transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+  #letter.show .paper{transform:none}
+  .paper::before{content:"✦";position:absolute;top:12px;right:16px;color:#c9a2ff;font-size:18px}
+  .paper h1{font-family:'Caveat',cursive;font-size:clamp(34px,10vw,46px);line-height:1;color:#3a2a86;margin-bottom:6px}
+  .paper .to{font-family:'Caveat',cursive;font-size:26px;color:#c2476b;margin-bottom:14px}
+  .paper .msg{font-family:'Caveat',cursive;font-size:clamp(21px,5.6vw,25px);line-height:1.35;white-space:pre-wrap;min-height:6em}
+  .paper .msg .cursor{display:inline-block;width:2px;height:1em;background:var(--ink);vertical-align:-2px;animation:pulse .8s infinite}
+  .paper .from{font-family:'Caveat',cursive;font-size:26px;text-align:right;margin-top:18px;color:#3a2a86;opacity:0;transition:opacity 1s}
+  .paper .from.show{opacity:1}
+  .controls{display:flex;gap:10px;justify-content:center;margin-top:18px}
+  .controls button{font:600 14px 'Quicksand',sans-serif;border:0;border-radius:999px;padding:9px 16px;
+    background:#ece6fb;color:#3a2a86;cursor:pointer}
+  .controls button:active{transform:scale(.95)}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<div class="moon"></div>
+
+<main class="stage">
+  <section id="intro">
+    <p class="hello" id="hello"></p>
+    <div class="envelope" id="env" role="button" aria-label="Open your letter">
+      <div class="body"></div><div class="pocket"></div><div class="flap"></div>
+      <div class="seal">💌</div>
+    </div>
+    <p class="tap">tap the letter ✨</p>
+  </section>
+
+  <section id="letter" aria-live="polite">
+    <div class="paper">
+      <h1>Happy Birthday</h1>
+      <div class="to" id="to"></div>
+      <div class="msg" id="msg"></div>
+      <div class="from" id="from"></div>
+      <div class="controls">
+        <button id="musicBtn">🔇 Music off</button>
+        <button id="wishBtn">🌠 Make a wish</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =================================================================
+   ✏️  CONFIG — change these lines, save, re-upload. That's it!
+   ================================================================= */
+const CONFIG = {
+  intro: "Hey you… a little star fell for you tonight 🌙",
+  to:    "To Levi,",
+  message:
+`Out of all the stars in the sky, I somehow got the brightest one.
+
+Thank you for being you, and thank you for being in my life. I’m so grateful for you, and I love you more than I can put into words.
+
+I hope this year brings you everything you wish for and so much more. I’ll be right here, cheering you on through all of it.
+
+Happy birthday, my love. ✨`,
+  from:  "Forever yours, Hui-Hui and Puppy",
+  typingSpeed: 38   // ms per letter — smaller = faster
+};
+
+/* ---------- Starry sky ---------- */
+const cv = document.getElementById('sky'), cx = cv.getContext('2d');
+let W, H, stars = [], shooters = [], dpr = Math.min(window.devicePixelRatio || 1, 2);
+function resize(){
+  W = innerWidth; H = innerHeight; cv.width = W*dpr; cv.height = H*dpr; cx.setTransform(dpr,0,0,dpr,0,0);
+  stars = Array.from({length: Math.round(W*H/2600)}, () => ({
+    x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.4+.3,
+    p: Math.random()*Math.PI*2, s: Math.random()*.02+.005
+  }));
+  if(typeof buildMusicBox === 'function') buildMusicBox();
+}
+function shoot(n=1){
+  for(let i=0;i<n;i++) shooters.push({x:Math.random()*W*.8+W*.2, y:Math.random()*H*.4, vx:-(6+Math.random()*4), vy:3+Math.random()*2, life:1});
+}
+/* ---------- Constellation music box (bottom-left) ---------- */
+let ac, master, playing = false, loopTimer, noteQueue = [];
+// Hexagonal music box as a real 3D model, seen from 30° to the side and 30° from above
+const YAW = 20*Math.PI/180 /* 30° reads like a cube for a hexagon; 20° shows three faces */, PITCH = 30*Math.PI/180;
+function proj([x,y,z]){                       // orthographic camera: turn sideways, then tilt down
+  const x1 = x*Math.cos(YAW) + z*Math.sin(YAW), z1 = -x*Math.sin(YAW) + z*Math.cos(YAW);
+  return [x1, y*Math.cos(PITCH) - z1*Math.sin(PITCH), y*Math.sin(PITCH) + z1*Math.cos(PITCH)];
+}
+const MB = {p3:{}, pts:{}, edges:[], dots:[], crank:null};
+(function(){
+  const P = MB.p3, A = [0,60,120,180,240,300], rad = d => d*Math.PI/180, nx = a => (a+60)%360;
+  const R = .62, H = .34, S60 = Math.sin(rad(60)), OPEN = rad(112), zh = -R*S60;   // hinge on the back edge
+  const hx = (a,y,r=R) => [r*Math.cos(rad(a)), y, r*Math.sin(rad(a))];
+  const lid = (a,r) => { const [x,,z] = hx(a,0,r), d = z - zh; return [x, H + d*Math.sin(OPEN), zh + d*Math.cos(OPEN)]; };
+  for(const a of A){ P['t'+a]=hx(a,H); P['b'+a]=hx(a,0); P['m'+a]=hx(a,H/2); P['f'+a]=hx(a,-.06);
+                     P['l'+a]=lid(a,R); P['i'+a]=lid(a,R*.6); }
+  const seen = new Set(), E = (A,B) => { const k=[A,B].sort().join(); if(!seen.has(k)){ seen.add(k); MB.edges.push([A,B]); } };
+  let best = null;
+  for(const a of A){
+    E('t'+a,'t'+nx(a)); MB.dots.push(['i'+a,'i'+nx(a)]);
+    if(a!==240) E('l'+a,'l'+nx(a));
+    const na = rad(a+30), n = [Math.cos(na),0,Math.sin(na)], pn = proj(n);
+    if(pn[2] > 1e-6){                               // only side faces turned toward us
+      E('b'+a,'b'+nx(a)); E('b'+a,'t'+a); E('b'+nx(a),'t'+nx(a)); E('b'+a,'f'+a); E('b'+nx(a),'f'+nx(a));
+      MB.dots.push(['m'+a,'m'+nx(a)]);
+      if(!best || pn[0] > best.pn[0]) best = {na, n, pn};
+    }
+  }
+  P.p = [0,H*.8,0]; P.q = [0,H+.42,0]; E('p','q');
+  const ap = R*S60, n = best.n;                  // crank sticks out of the right-most visible face
+  P.k1 = [n[0]*ap, H/2, n[2]*ap]; P.k2 = [n[0]*(ap+.34), H/2, n[2]*(ap+.34)]; E('k1','k2');
+  MB.crank = {base:P.k2, e1:[-Math.sin(best.na),0,Math.cos(best.na)], e2:[0,1,0]};
+})();
+let mbStars = [], mbS = 120, mbX = 24, mbY = 0, mbU0 = 0, mbV0 = 0, mbGlow = 0, mbSpin = 0, mbCrank = 0, notes = [];
+const toXY = (u,v) => [mbX + (u-mbU0)*mbS, mbY - (v-mbV0)*mbS];
+for(const k in MB.p3) MB.pts[k] = proj(MB.p3[k]);
+mbU0 = Math.min(...Object.values(MB.pts).map(p=>p[0])); mbV0 = Math.min(...Object.values(MB.pts).map(p=>p[1]));
+function buildMusicBox(){
+  mbS = Math.max(85, Math.min(150, Math.min(W,H)*.23));
+  mbX = 16; mbY = H - 22;
+  mbStars = [];
+  const used = new Set(); MB.edges.forEach(e => e.forEach(k => used.add(k)));
+  for(const k of used){ if(['q','k2','p','l240','l300'].includes(k)) continue;
+    mbStars.push({u:MB.pts[k][0], v:MB.pts[k][1], r:1.35, p:Math.random()*7}); }
+  for(const [list, dotted] of [[MB.edges,false],[MB.dots,true]]) for(const [A,B] of list){
+    const [u1,v1] = MB.pts[A], [u2,v2] = MB.pts[B], n = Math.max(2, Math.ceil(Math.hypot(u2-u1,v2-v1)/(dotted?.055:.07)));
+    for(let k = dotted?0:1; k<n; k++) mbStars.push({u:u1+(u2-u1)*k/n+(Math.random()-.5)*.012, v:v1+(v2-v1)*k/n+(Math.random()-.5)*.012,
+      r: dotted ? Math.random()*.35+.35 : Math.random()*.4+.4, p:Math.random()*7});
+  }
+}
+function starShape(x,y,R,rot,alpha){
+  cx.beginPath();
+  for(let k=0;k<10;k++){ const r = k%2 ? R*.45 : R, a = rot + k*Math.PI/5 - Math.PI/2;
+    cx.lineTo(x+Math.cos(a)*r, y+Math.sin(a)*r); }
+  cx.closePath(); cx.fillStyle = `rgba(255,217,138,${alpha})`; cx.fill();
+}
+function spawnNote(){
+  const [x,y] = toXY(MB.pts.q[0]+(Math.random()-.5)*.5, MB.pts.q[1]+.05);
+  notes.push({x, y, vx:(Math.random()-.3)*.5, vy:-(.5+Math.random()*.4), life:1,
+    g:['♪','♫','♩','✦'][Math.random()*4|0], s:mbS*(.18+Math.random()*.1), w:Math.random()*7});
+}
+function drawMusicBox(){
+  if(playing && ac) while(noteQueue.length && ac.currentTime >= noteQueue[0]){ noteQueue.shift(); mbGlow = 1; spawnNote(); }
+  mbGlow *= .93; mbSpin += playing ? .035 : .006; if(playing) mbCrank += .05;
+  const glow = mbGlow;
+  // faint constellation lines
+  cx.lineWidth = .7; cx.strokeStyle = `rgba(210,200,255,${.2 + glow*.3})`;
+  for(const [A,B] of MB.edges){ const [x1,y1]=toXY(...MB.pts[A]), [x2,y2]=toXY(...MB.pts[B]);
+    cx.beginPath(); cx.moveTo(x1,y1); cx.lineTo(x2,y2); cx.stroke(); }
+  // crank handle turning around its axle
+  const c = MB.crank, cs = Math.cos(mbCrank)*.11, sn = Math.sin(mbCrank)*.11;
+  const hp = proj([0,1,2].map(i => c.base[i] + c.e1[i]*cs + c.e2[i]*sn));
+  const [kx,ky] = toXY(...MB.pts.k2), [hx,hy] = toXY(hp[0],hp[1]);
+  cx.beginPath(); cx.moveTo(kx,ky); cx.lineTo(hx,hy); cx.stroke();
+  // stars
+  for(const s of mbStars){ s.p += .03; const [x,y] = toXY(s.u,s.v), a = .55 + Math.sin(s.p)*.3 + glow*.3;
+    cx.fillStyle = `rgba(255,246,215,${Math.min(a,1)})`; cx.beginPath(); cx.arc(x,y,s.r*(1+glow*.4),0,7); cx.fill(); }
+  cx.fillStyle = 'rgba(255,246,215,.9)'; for(const [x,y] of [[kx,ky],[hx,hy]]){ cx.beginPath(); cx.arc(x,y,1.8,0,7); cx.fill(); }
+  // little spinning star dancer
+  const [qx,qy] = toXY(...MB.pts.q);
+  cx.save(); cx.shadowColor = 'rgba(255,217,138,.9)'; cx.shadowBlur = 10 + glow*14;
+  starShape(qx, qy, mbS*(.075 + glow*.02), mbSpin, .95); cx.restore();
+  // rising notes
+  notes = notes.filter(n => n.life > 0);
+  cx.textAlign = 'center';
+  for(const n of notes){ n.w += .05; n.x += n.vx + Math.sin(n.w)*.4; n.y += n.vy; n.life -= .006;
+    cx.font = `${n.s}px serif`; cx.fillStyle = `rgba(255,225,160,${Math.min(1,n.life*1.2)})`; cx.fillText(n.g, n.x, n.y); }
+}
+
+function frame(){
+  cx.clearRect(0,0,W,H);
+  drawMusicBox();
+  for(const s of stars){
+    s.p += s.s; const a = .45 + Math.sin(s.p)*.45;
+    cx.fillStyle = `rgba(255,248,220,${a})`; cx.beginPath(); cx.arc(s.x,s.y,s.r,0,7); cx.fill();
+  }
+  shooters = shooters.filter(m => m.life > 0);
+  for(const m of shooters){
+    const g = cx.createLinearGradient(m.x,m.y,m.x-m.vx*12,m.y-m.vy*12);
+    g.addColorStop(0,`rgba(255,240,200,${m.life})`); g.addColorStop(1,'rgba(255,240,200,0)');
+    cx.strokeStyle = g; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(m.x,m.y); cx.lineTo(m.x-m.vx*12,m.y-m.vy*12); cx.stroke();
+    m.x += m.vx; m.y += m.vy; m.life -= .012;
+  }
+  if(Math.random() < .004) shoot();
+  requestAnimationFrame(frame);
+}
+addEventListener('resize', resize); resize(); frame();
+
+/* ---------- Music box: Happy Birthday (public domain) ---------- */
+const N = {C4:261.63,E4:329.63,F4:349.23,G4:392,A4:440,Bb4:466.16,B4:493.88,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,
+           C3:130.81,F3:174.61,G3:196};
+const melody = [ // [note, beats]
+  ['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
+  ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
+  ['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],
+  ['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',3]
+];
+const bass = [['C3',3],['G3',3],['G3',3],['C3',3],['C3',3],['F3',3],['C3',1.5],['G3',1.5],['C3',3]];
+const BEAT = .42;
+function bell(freq, t, dur, vol){
+  [[1,1],[2,.25],[3,.08]].forEach(([mult, g]) => {
+    const o = ac.createOscillator(), v = ac.createGain();
+    o.type = 'sine'; o.frequency.value = freq*mult;
+    v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(vol*g, t+.01);
+    v.gain.exponentialRampToValueAtTime(.0001, t + Math.max(dur, .9)*1.6);
+    o.connect(v).connect(master); o.start(t); o.stop(t + Math.max(dur,.9)*1.7);
+  });
+}
+function playSong(){
+  if(!playing) return;
+  let t = ac.currentTime + .15, bt = t + BEAT; // bass starts on the downbeat after the pickup
+  noteQueue = [];
+  for(const [n,b] of melody){ bell(N[n], t, b*BEAT, .22); noteQueue.push(t); t += b*BEAT; }
+  for(const [n,b] of bass){ bell(N[n], bt, b*BEAT, .09); bt += b*BEAT; }
+  loopTimer = setTimeout(playSong, (t - ac.currentTime + 2.5)*1000);
+}
+function startMusic(){
+  if(!ac){
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = .8;
+    const comp = ac.createDynamicsCompressor(); master.connect(comp).connect(ac.destination);
+  }
+  ac.resume(); playing = true; master.gain.setTargetAtTime(.8, ac.currentTime, .05);
+  clearTimeout(loopTimer); playSong(); musicBtn.textContent = '🔇 Music off';
+}
+function stopMusic(){
+  playing = false; clearTimeout(loopTimer); noteQueue = [];
+  if(master) master.gain.setTargetAtTime(0, ac.currentTime, .08);
+  musicBtn.textContent = '🎵 Music on';
+}
+
+/* ---------- Flow ---------- */
+const $ = id => document.getElementById(id);
+const musicBtn = $('musicBtn');
+$('hello').textContent = CONFIG.intro;
+$('to').textContent = CONFIG.to;
+$('from').textContent = CONFIG.from;
+
+function typeMessage(){
+  const el = $('msg'), text = CONFIG.message; let i = 0;
+  const cursor = document.createElement('span'); cursor.className = 'cursor';
+  const node = document.createTextNode(''); el.append(node, cursor);
+  (function step(){
+    node.data = text.slice(0, ++i);
+    if(i < text.length) setTimeout(step, text[i-1] === '\n' ? 260 : CONFIG.typingSpeed);
+    else { cursor.remove(); $('from').classList.add('show'); shoot(3); }
+  })();
+}
+let opened = false;
+function openLetter(){
+  if(opened) return; opened = true;
+  startMusic();                       // must start inside a tap (phone autoplay rules)
+  $('intro').classList.add('hide');
+  shoot(4);
+  setTimeout(() => { $('letter').classList.add('show'); setTimeout(typeMessage, 700); }, 600);
+}
+$('env').addEventListener('click', openLetter);
+musicBtn.addEventListener('click', () => playing ? stopMusic() : startMusic());
+$('wishBtn').addEventListener('click', () => shoot(8));
+</script>
+</body>
+</html>
