@@ -81,6 +81,24 @@
   @media (prefers-reduced-motion:reduce){ .envelope,.tap{animation:none} }
   .paper::before{content:"✦";position:absolute;top:12px;right:16px;color:#c9a2ff;font-size:18px}
   .paper h1{font-family:'Caveat',cursive;font-size:clamp(34px,10vw,46px);line-height:1;color:#3a2a86;margin-bottom:6px}
+  .paper h1 .age{color:#c9953a;text-shadow:0 0 10px rgba(255,217,138,.6)}
+  #letter.show.away{opacity:0;pointer-events:none}
+  #letter.away .paper{transform:translateY(16px) scale(.97)}
+  /* ---------- 28 wish stars ---------- */
+  #wishUI{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .9s ease}
+  #wishUI.show{opacity:1}
+  #wishUI.show #backBtn{pointer-events:auto}
+  .wish-hint{position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 4vh);text-align:center;
+    font-family:'Caveat',cursive;font-size:clamp(22px,6vw,28px);color:var(--gold);text-shadow:0 0 12px rgba(255,217,138,.5);
+    transition:opacity .5s}
+  #backBtn{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 5vh);transform:translateX(-50%);
+    font:600 14px 'Quicksand',sans-serif;border:0;border-radius:999px;padding:9px 16px;background:#ece6fb;color:#3a2a86;cursor:pointer}
+  .reason{position:absolute;width:min(260px,78vw);background:var(--paper);color:var(--ink);border-radius:12px;
+    padding:12px 16px 14px;box-shadow:0 12px 34px rgba(0,0,0,.5);text-align:left;
+    font-family:'Caveat',cursive;font-size:22px;line-height:1.25;
+    opacity:0;transform:translateY(6px) scale(.97);transition:opacity .45s ease, transform .45s ease}
+  .reason.show{opacity:1;transform:none}
+  .reason small{display:block;font:600 11px 'Quicksand',sans-serif;letter-spacing:.12em;color:#a58bd8;margin-bottom:4px}
   .paper .to{font-family:'Caveat',cursive;font-size:26px;color:#c2476b;margin-bottom:14px}
   .paper .msg{font-family:'Caveat',cursive;font-size:clamp(21px,5.6vw,25px);line-height:1.35;white-space:pre-wrap;min-height:6em}
   .paper .msg .cursor{display:inline-block;width:2px;height:1em;background:var(--ink);vertical-align:-2px;animation:pulse .8s infinite}
@@ -109,17 +127,23 @@
 
   <section id="letter" aria-live="polite">
     <div class="paper">
-      <h1>Happy Birthday</h1>
+      <h1 id="title">Happy Birthday</h1>
       <div class="to" id="to"></div>
       <div class="msg" id="msg"></div>
       <div class="from" id="from"></div>
       <div class="controls">
         <button id="musicBtn">🔇 Music off</button>
-        <button id="wishBtn">🌠 Make a wish</button>
+        <button id="wishBtn">🌠 I love you</button>
       </div>
     </div>
   </section>
 </main>
+
+<div id="wishUI">
+  <p class="wish-hint" id="wishHint"></p>
+  <div class="reason" id="reason"><small id="reasonNo"></small><span id="reasonTxt"></span></div>
+  <button id="backBtn">💌 Back to letter</button>
+</div>
 
 <script>
 /* =================================================================
@@ -137,7 +161,39 @@ I hope this year brings you everything you wish for and so much more. I’ll be 
 
 Happy birthday, my love. ✨`,
   from:  "Forever yours, Hui-Hui and Puppy",
-  typingSpeed: 38   // ms per letter — smaller = faster
+  typingSpeed: 38,  // ms per letter — smaller = faster
+  age: 28,
+  // 28 reasons: one hides in each star of the "28" that appears when he taps "Make a wish".
+  reasons: [
+    "You make ordinary days feel like little adventures.",
+    "Your hugs and kisses.",
+    "You're humorous and witty.",
+    "You're kind to people.",
+    "Your voice.",
+    "Every plan (or no plan) feels better when it's with you.",
+    "You believe in me more than I believe in myself.",
+    "You remember the little things I say.",
+    "Your jokes and movie references.",
+    "You make me feel safe.",
+    "The way you get excited about the things you love.",
+    "Your dance moves.",
+    "You sending me Insta reels like dogs bringing their humans sticks.",
+    "Your smile, your laugh.",
+    "You cuddle me when we sleep.",
+    "You're hot.",
+    "You work so hard.",
+    "You're brave.",
+    "We cook food and bake desserts together.",
+    "We ski and skate together.",
+    "You're my friend and boyfriend.",
+    "You holding my hand.",
+    "You make me want to be a better person.",
+    "You're gentle with Puppy (and with me).",
+    "You listen.",
+    "You're handsome, obviously.",
+    "You chose me, and keep choosing me.",
+    "Because you're you, and there's only one of you."
+  ]
 };
 
 /* ---------- Starry sky ---------- */
@@ -151,8 +207,13 @@ function resize(){
   }));
   if(typeof buildMusicBox === 'function') buildMusicBox();
 }
-function shoot(n=1){
-  for(let i=0;i<n;i++) shooters.push({x:Math.random()*W*.8+W*.2, y:Math.random()*H*.4, vx:-(6+Math.random()*4), vy:3+Math.random()*2, life:1});
+function shoot(n=1, ax, ay){          // ax, ay: burst around a tapped point (otherwise anywhere in the upper sky)
+  for(let i=0;i<n;i++){
+    if(shooters.length > 80) break;
+    const x = ax == null ? Math.random()*W*.8+W*.2 : ax + (Math.random()-.3)*W*.5;
+    const y = ay == null ? Math.random()*H*.4 : ay + (Math.random()-.7)*H*.25;
+    shooters.push({x, y, vx:-(6+Math.random()*4), vy:3+Math.random()*2, life:1});
+  }
 }
 /* ---------- Constellation music box (bottom-left) ---------- */
 let playing = false;
@@ -259,6 +320,7 @@ function frame(){
     m.x += m.vx; m.y += m.vy; m.life -= .012;
   }
   if(Math.random() < .004) shoot();
+  drawWish();
   requestAnimationFrame(frame);
 }
 addEventListener('resize', resize); resize(); frame();
@@ -338,7 +400,111 @@ function openLetter(){
 }
 $('env').addEventListener('click', openLetter);
 musicBtn.addEventListener('click', () => playing ? stopMusic() : startMusic());
-$('wishBtn').addEventListener('click', () => shoot(8));
+$('wishBtn').addEventListener('click', startWish);
+{ const a = CONFIG.age, sfx = (a%100>10 && a%100<14) ? 'th' : ({1:'st',2:'nd',3:'rd'}[a%10] || 'th');
+  $('title').innerHTML = `Happy <span class="age">${a}${sfx}</span> Birthday`; }
+
+/* ---------- Make a wish: stars gather into a "28" constellation; each star hides a reason ---------- */
+var wish = null;
+const WISH = (() => {                      // the digits as star paths, in digit units (y points down)
+  const arc = (cx,cy,r,a0,a1,n=40) => Array.from({length:n+1}, (_,i) => { const a=(a0+(a1-a0)*i/n)*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; });
+  const two   = [...arc(.5,.48,.42,-165,25), [.05,1.6], [1,1.6]];
+  const eight1 = arc(1.85,.42,.37,90,450), eight2 = arc(1.85,1.19,.41,-90,270);
+  const sample = (poly, n, closed) => {   // n evenly spaced points along a polyline
+    const L=[0]; for(let i=1;i<poly.length;i++) L.push(L[i-1]+Math.hypot(poly[i][0]-poly[i-1][0], poly[i][1]-poly[i-1][1]));
+    const tot=L[L.length-1], out=[];
+    for(let k=0;k<n;k++){ const d = closed ? tot*k/n : tot*k/(n-1); let i=1; while(i<L.length-1 && L[i]<d) i++;
+      const f=(d-L[i-1])/((L[i]-L[i-1])||1); out.push([poly[i-1][0]+(poly[i][0]-poly[i-1][0])*f, poly[i-1][1]+(poly[i][1]-poly[i-1][1])*f]); }
+    return out;
+  };
+  const groups = [[sample(two,12,false),false], [sample(eight1,7,true),true], [sample(eight2,9,true),true]];
+  const pts = [], segs = [];
+  for(const [g,closed] of groups){ const o = pts.length; g.forEach((p,i) => { pts.push(p); if(i) segs.push([o+i-1,o+i]); });
+    if(closed) segs.push([o+g.length-1,o]); }
+  return {pts, segs, w:2.35, h:1.6};
+})();
+const readReasons = new Set();
+function wishXY(i){
+  const u = Math.min(H*.46/WISH.h, W*.78/WISH.w), x0 = W/2 - WISH.w*u/2, y0 = H*.44 - WISH.h*u/2;
+  return [x0 + WISH.pts[i][0]*u, y0 + WISH.pts[i][1]*u];
+}
+function startWish(){
+  if(wish) return;
+  $('letter').classList.add('away'); shoot(3);
+  const src = stars.length ? stars : [{x:W/2,y:H/2}];
+  wish = {mode:'forming', t0:performance.now(), sel:-1,
+    s: WISH.pts.map((_,i) => { const b = src[Math.random()*src.length|0]; return {sx:b.x, sy:b.y, delay:i*45 + Math.random()*250, tw:Math.random()*7}; })};
+  setTimeout(() => { if(!wish || wish.mode!=='forming') return; wish.mode = 'on'; updateHint(); $('wishUI').classList.add('show'); }, 2900);
+}
+function endWish(){
+  if(!wish || wish.mode==='leaving') return;
+  closeReason(); $('wishUI').classList.remove('show');
+  wish.mode = 'leaving'; wish.t0 = performance.now();
+  setTimeout(() => $('letter').classList.remove('away'), 350);
+  setTimeout(() => { wish = null; }, 1300);
+}
+function updateHint(){
+  const n = readReasons.size, N = WISH.pts.length;
+  $('wishHint').textContent = n === 0 ? `${N} stars, ${N} reasons — tap one ✨`
+    : n < N ? `${n} of ${N} reasons found ✨` : 'and a million more… ✨';
+}
+function openReason(i){
+  const first = !readReasons.has(i); readReasons.add(i); wish.sel = i; updateHint();
+  if(first && readReasons.size === WISH.pts.length) shoot(6);
+  const card = $('reason'), [x,y] = wishXY(i);
+  $('reasonNo').textContent = `No. ${i+1} of ${WISH.pts.length}`;
+  $('reasonTxt').textContent = (CONFIG.reasons[i] || '');
+  card.classList.remove('show');
+  requestAnimationFrame(() => {
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    const left = Math.max(12, Math.min(W - cw - 12, x - cw/2));
+    const top = y < H*.5 ? y + 22 : y - ch - 22;
+    card.style.left = left+'px'; card.style.top = Math.max(12, Math.min(H - ch - 12, top))+'px';
+    card.classList.add('show');
+  });
+}
+function closeReason(){ if(wish) wish.sel = -1; $('reason').classList.remove('show'); }
+$('backBtn').addEventListener('click', endWish);
+document.addEventListener('click', e => {
+  if(!wish || wish.mode!=='on' || e.target.closest('button')) return;
+  let best = -1, bd = 26;
+  WISH.pts.forEach((_,i) => { const [x,y] = wishXY(i), d = Math.hypot(e.clientX-x, e.clientY-y); if(d < bd){ bd = d; best = i; } });
+  best >= 0 && best !== wish.sel ? openReason(best) : closeReason();
+});
+// Tap anywhere in the sky → the original "Make a wish" meteor shower
+document.addEventListener('click', e => {
+  if(e.target.closest('button, #env, .paper, .reason')) return;
+  if(wish && wish.mode === 'on' && WISH.pts.some((_,i) => { const [x,y] = wishXY(i); return Math.hypot(e.clientX-x, e.clientY-y) < 26; })) return;
+  shoot(8);                           // same meteor shower "Make a wish" used to make
+});
+function drawWish(){
+  if(!wish) return;
+  const el = performance.now() - wish.t0, ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+  const fade = wish.mode==='leaving' ? Math.max(0, 1 - el/1100) : 1;
+  const pos = WISH.pts.map((_,i) => {
+    const [tx,ty] = wishXY(i), st = wish.s[i];
+    if(wish.mode!=='forming') return [tx,ty,1];
+    const p = ease(Math.min(1, Math.max(0, (el - st.delay)/1700))), bend = Math.sin(p*Math.PI)*40;
+    const dx = tx-st.sx, dy = ty-st.sy, L = Math.hypot(dx,dy)||1;
+    return [st.sx + dx*p - dy/L*bend, st.sy + dy*p + dx/L*bend, p];
+  });
+  // constellation lines, drawn in once the stars have arrived
+  const lineA = (wish.mode==='forming' ? Math.min(1, Math.max(0,(el-1900)/900)) : 1) * fade;
+  if(lineA > 0){ cx.lineWidth = .8; cx.strokeStyle = `rgba(210,200,255,${.35*lineA})`;
+    for(const [a,b] of WISH.segs){ cx.beginPath(); cx.moveTo(pos[a][0],pos[a][1]); cx.lineTo(pos[b][0],pos[b][1]); cx.stroke(); } }
+  cx.save();
+  pos.forEach(([x,y,p],i) => {
+    const st = wish.s[i]; st.tw += .04;
+    const read = readReasons.has(i), sel = i === wish.sel;
+    const r = (1.2 + p*1.5 + (sel ? 1.2 : 0)) * (1 + Math.sin(st.tw)*.12);
+    cx.shadowColor = read ? 'rgba(255,179,199,.9)' : 'rgba(255,217,138,.9)'; cx.shadowBlur = sel ? 18 : 10;
+    cx.fillStyle = read ? `rgba(255,205,220,${fade})` : `rgba(255,236,190,${fade})`;
+    cx.beginPath(); cx.arc(x,y,r,0,7); cx.fill();
+    if(sel){ cx.shadowBlur = 0; cx.strokeStyle = `rgba(255,217,138,${.6*fade})`; cx.lineWidth = 1;
+      cx.beginPath(); cx.arc(x,y,r+6+Math.sin(st.tw*2)*1.5,0,7); cx.stroke(); }
+  });
+  cx.restore();
+}
 </script>
 </body>
 </html>
