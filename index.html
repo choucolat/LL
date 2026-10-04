@@ -146,9 +146,6 @@
 </div>
 
 <script>
-/* =================================================================
-   ✏️  CONFIG — change these lines, save, re-upload. That's it!
-   ================================================================= */
 const CONFIG = {
   intro: "Hey you… a little star fell for you tonight 🌙",
   to:    "To Levi,",
@@ -163,7 +160,6 @@ Happy birthday, my love. ✨`,
   from:  "Forever yours, Hui-Hui and Puppy",
   typingSpeed: 38,  // ms per letter — smaller = faster
   age: 28,
-  // 28 reasons: one hides in each star of the "28" that appears when he taps "Make a wish".
   reasons: [
     "You make ordinary days feel like little adventures.",
     "Your hugs and kisses.",
@@ -179,18 +175,18 @@ Happy birthday, my love. ✨`,
     "Your dance moves.",
     "You sending me Insta reels like dogs bringing their humans sticks.",
     "Your smile, your laugh.",
-    "You cuddle me when we sleep.",
+    "We cuddle when we sleep.",
     "You're hot.",
-    "You work so hard.",
+    "You work hard.",
     "You're brave.",
     "We cook food and bake desserts together.",
     "We ski and skate together.",
     "You're my friend and boyfriend.",
     "You holding my hand.",
     "You make me want to be a better person.",
-    "You're gentle with Puppy (and with me).",
+    "You're gentle with Puppy (and me).",
     "You listen.",
-    "You're handsome, obviously.",
+    "You're handsome.",
     "You sooooooooooooo cute.",
     "Because you're you, and there's only one of you."
   ]
@@ -215,7 +211,7 @@ function shoot(n=1, ax, ay){          // ax, ay: burst around a tapped point (ot
     shooters.push({x, y, vx:-(6+Math.random()*4), vy:3+Math.random()*2, life:1});
   }
 }
-/* ---------- Constellation music box (bottom-left) ---------- */
+/* ---------- Constellation music box ---------- */
 let playing = false;
 // Hexagonal music box as a real 3D model, seen from 30° to the side and 30° from above
 const YAW = 20*Math.PI/180 /* 30° reads like a cube for a hexagon; 20° shows three faces */, PITCH = 30*Math.PI/180;
@@ -445,7 +441,7 @@ function endWish(){
 }
 function updateHint(){
   const n = readReasons.size, N = WISH.pts.length;
-  $('wishHint').textContent = n === 0 ? `${N} stars, ${N} reasons — tap one ✨`
+  $('wishHint').textContent = n === 0 ? `${N} stars, ${N} reasons ✨`
     : n < N ? `${n} of ${N} reasons found ✨` : 'and a million more… ✨';
 }
 function openReason(i){
